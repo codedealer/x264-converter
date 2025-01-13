@@ -1,0 +1,43 @@
+{
+  "name": "x264-converter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "clean": "rimraf bin && mkdir bin",
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "package": "pnpm run clean && pnpm run build && pkg . --out-path bin"
+  },
+  "bin": {
+    "x264-converter": "dist/index.js"
+  },
+  "pkg": {
+    "scripts": "dist/**/*.js",
+    "assets": "dist/**/*",
+    "targets": [
+      "node20-win-x64"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "better-sqlite3": "^11.7.2",
+    "chokidar": "^4.0.3",
+    "cli-progress": "^3.12.0",
+    "inquirer": "^12.3.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/cli-progress": "^3.11.6",
+    "@types/node": "^22.10.5",
+    "@yao-pkg/pkg": "^6.2.0",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "packageManager": "pnpm@9.15.2+sha512.93e57b0126f0df74ce6bff29680394c0ba54ec47246b9cf321f0121d8d9bb03f750a705f24edc3c1180853afd7c2c3b94196d0a3d53d3e069d9e2793ef11f321"
+}
