@@ -1,8 +1,11 @@
-import { basename } from "path";
+import { basename, extname } from "path";
 import logger from "./logger";
 import cliProgress from 'cli-progress';
-import { trimFileName } from "./utils";
+import { fixVideoStreamDimensions, getOutputFileName, stringToArgs, trimFileName } from "./utils";
 import { displayPauseMenu } from "./menu";
+import { ValidatedOptions } from "./options";
+import { FFmpegExecutor } from "./ffmpeg";
+import { createWriteStream, renameSync } from "node:fs";
 
 const statusIcons = {
   ['in-progress']: '⏳', // Hourglass
@@ -13,10 +16,12 @@ const statusIcons = {
 
 class Encoder {
   public state: 'in-progress' | 'pause' | 'stop' | 'done';
+  public options: ValidatedOptions;
   private progressBar: cliProgress.SingleBar;
 
-  constructor() {
+  constructor(options: ValidatedOptions) {
     this.state = 'in-progress';
+    this.options = options;
     this.progressBar = this.makeProgressBar();
   }
   async processQueue (queue: string[]): Promise<void> {
@@ -132,6 +137,9 @@ class Encoder {
       logger.debug(`Renaming file: ${output.output} -> ${output.finalName}`);
       renameSync(output.output, output.finalName);
     }
+
+    // finalize the progress bar just in case
+    this.progressBar.update((fileIndex * 100) + 100);
   }
   private writeErrorLog (file: string, data: string) {
     const stream = createWriteStream(file, { flags: 'w' });
@@ -145,7 +153,7 @@ class Encoder {
   }
   private makeProgressBar () {
     const progressBar = new cliProgress.SingleBar({
-      format: '{filename} Progress |{bar}| {percentage}% | {current}/{queue} | {status}',
+      format: '{filename} |{bar}| {percentage}% | {current}/{queue} | {status}',
       hideCursor: true,
       clearOnComplete: true,
       fps: 10,
