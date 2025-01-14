@@ -28,11 +28,16 @@ export interface Options {
   force: boolean;
   videoOptions: {
     ffmpegCommand: string;
+    outputContainer?: string
   }
 }
 
-export interface OptionsWithDirectories extends Options {
+export interface ValidatedOptions extends Options {
   dstDir: string;
+  videoOptions: {
+    ffmpegCommand: string;
+    outputContainer: string;
+  }
 }
 
 const defaultOptions: Options = {
@@ -46,6 +51,7 @@ const defaultOptions: Options = {
   force: false,
   videoOptions: {
     ffmpegCommand: '',
+    outputContainer: 'mp4',
   }
 }
 
@@ -90,7 +96,7 @@ const validateDirectory = (directory: string): string => {
   return validatePath(directory, dirname(directory));
 }
 
-const loadOptions = (directoryOrFile: string): OptionsWithDirectories => {
+const loadOptions = (directoryOrFile: string): ValidatedOptions => {
   if (!directoryOrFile) {
     throw new Error('Directory or file is required');
   }
@@ -112,8 +118,13 @@ const loadOptions = (directoryOrFile: string): OptionsWithDirectories => {
 
   options.srcDir = validateDirectory(options.srcDir);
   options.dstDir = options.dstDir ? validateDirectory(options.dstDir) : options.srcDir;
+  if (!options.videoOptions.outputContainer) {
+    options.videoOptions.outputContainer = 'mp4';
+  } else if (options.videoOptions.outputContainer.startsWith('.')) {
+    options.videoOptions.outputContainer = options.videoOptions.outputContainer.slice(1);
+  }
 
-  return { ...getDefaultOptions(), ...options } as OptionsWithDirectories;
+  return { ...getDefaultOptions(), ...options } as ValidatedOptions;
 }
 
 export { optionsExists, getDefaultOptions, saveOptions, loadOptions };

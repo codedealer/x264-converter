@@ -1,5 +1,6 @@
-import { isAbsolute, resolve, sep } from 'path';
+import { basename, extname, isAbsolute, resolve, sep } from 'path';
 import { statSync } from 'fs';
+import { ValidatedOptions } from "./options";
 
 const validatePath = (inputPath: string, baseDirectory: string): string => {
   if (!isAbsolute(inputPath)) {
@@ -32,4 +33,47 @@ const trimFileName = (filename: string, maxLength = 15): string => {
   return `${filename.slice(0, prefixLength)}...${filename.slice(-suffixLength)}`;
 }
 
-export { validatePath, trimFileName };
+const stringToArgs = (input: string): string[] => {
+  return input.split(' ').filter(Boolean);
+}
+
+const getOutputFileName = (input: string, options: ValidatedOptions): {
+  output: string;
+  finalName: string;
+} => {
+  const filename = basename(input);
+  const originalExtension = extname(filename).slice(1);
+  const filenameWithoutExtension = filename.slice(0, -originalExtension.length - 1);
+
+  const result = {
+    output: '',
+    finalName: resolve(options.dstDir, `${filenameWithoutExtension}.${options.videoOptions.outputContainer}`),
+  }
+  if (options.srcDir === options.dstDir && options.videoOptions.outputContainer === originalExtension) {
+    // If there is a name collision, we need to create a new file in the same directory with the temporary name and then rename it
+    const suffix = '_encoded';
+    result.output = resolve(options.dstDir, `${filenameWithoutExtension}${suffix}.${options.videoOptions.outputContainer}`);
+    if (!options.deleteOriginal) {
+      // the original file will be kept, so our final name will be the same as the output
+      result.finalName = result.output;
+    }
+  } else {
+    result.output = result.finalName;
+  }
+
+  return result;
+}
+
+const fixVideoStreamDimensions = (args: string[]) => {
+  const index = args.indexOf('-vf');
+  const cropFilter = 'crop=iw-mod(iw\\,2):ih-mod(ih\\,2)';
+
+  if (index !== -1 && args[index + 1]) {
+    // Merge the crop filter with the existing one
+    args[index + 1] = `${cropFilter},${args[index + 1]}`;
+  } else {
+    args.push('-vf', cropFilter);
+  }
+}
+
+export { validatePath, trimFileName, stringToArgs, getOutputFileName, fixVideoStreamDimensions };

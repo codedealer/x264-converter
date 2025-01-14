@@ -4,6 +4,7 @@ import bootstrap from "./bootstrap";
 import { displayMainMenu } from "./menu";
 import Encoder from "./encoder";
 import KeypressListener from "./keypressListener";
+import { readdirSync } from "node:fs";
 
 const main = async () => {
   const options = await bootstrap();
@@ -17,8 +18,8 @@ const main = async () => {
 
     switch (action) {
       case 'process':
-        const encoder = new Encoder();
-        const mockQueue = ['x:/file1', 'x:/file2', 'x:/superlongnameholyshititssolong.mp4'];
+        const encoder = new Encoder(options);
+        const mockQueue = readdirSync(options.srcDir).filter(file => file.endsWith('.mp4'));
 
         if (process.stdin.isPaused()) {
           process.stdin.resume();

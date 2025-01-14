@@ -20,6 +20,7 @@ const optionsSchema: JSONSchemaType<Options> = {
       type: 'object',
       properties: {
         ffmpegCommand: { type: 'string' },
+        outputContainer: { type: 'string', nullable: true },
       },
       required: ['ffmpegCommand'],
     },
