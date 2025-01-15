@@ -12,7 +12,7 @@ const optionsSchema: JSONSchemaType<Options> = {
     deleteOriginal: { type: 'boolean' },
     preserveAttributes: { type: 'boolean' },
     careful: { type: 'boolean' },
-    deep: { type: 'boolean' },
+    deep: { type: 'number' },
     watch: { type: 'boolean' },
     ffmpegPath: { type: 'string', nullable: true },
     force: { type: 'boolean' },

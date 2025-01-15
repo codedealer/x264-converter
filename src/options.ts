@@ -19,7 +19,7 @@ export interface Options {
   // stop on error or continue with the next file
   careful: boolean;
   // whether to scan subdirectories
-  deep: boolean;
+  deep: number;
   // watch for new files
   watch: boolean;
   // path to ffmpeg executable
@@ -46,7 +46,7 @@ const defaultOptions: Options = {
   deleteOriginal: false,
   preserveAttributes: true,
   careful: false,
-  deep: false,
+  deep: 0,
   watch: false,
   force: false,
   videoOptions: {
