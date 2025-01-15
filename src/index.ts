@@ -6,9 +6,10 @@ import Encoder from "./encoder";
 import KeypressListener from "./keypressListener";
 import { readdirSync } from "node:fs";
 import { join } from "path";
+import { deleteDatabase, getDbPath, initializeDatabase } from "./db";
 
 const main = async () => {
-  const options = await bootstrap();
+  let { db, options } = await bootstrap();
 
   logger.info(`Working directory${options.deep ? ' (and subdirectories)' : ''}: ${options.srcDir}`);
   logger.info(`Output directory: ${options.dstDir}`);
@@ -38,6 +39,24 @@ const main = async () => {
           logger.error(e);
         } finally {
           listener.removeAllListeners();
+        }
+        break;
+      case 'drop':
+        // confirm dialog
+        const { confirm } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'confirm',
+            message: 'Are you sure you want to delete the database?',
+            default: false,
+          },
+        ]);
+        if (confirm) {
+          db.close();
+          deleteDatabase(getDbPath());
+          logger.info('Database deleted');
+          db = initializeDatabase(getDbPath());
+          logger.info('Database re-initialized');
         }
         break;
       case 'quit':

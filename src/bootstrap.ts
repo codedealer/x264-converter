@@ -1,6 +1,6 @@
 import logger from "./logger";
 import { dirname, isAbsolute, join } from "path";
-import { initializeDatabase } from "./db";
+import { getDbPath, initializeDatabase } from "./db";
 import { statSync } from "fs";
 import { validatePath } from "./utils";
 import { getDefaultOptions, loadOptions, optionsExists, saveOptions } from "./options";
@@ -62,10 +62,7 @@ const bootstrap = async () => {
   logger.info(`x264 Converter`);
   logger.debug('Debugging enabled');
 
-  const dbDir = 'pkg' in process ? dirname(process.execPath) : process.cwd();
-  const dbPath = join(dbDir, 'x264-db.sqlite');
-  logger.debug(`Database directory: ${dbDir}`);
-  initializeDatabase(dbPath);
+  const db = initializeDatabase(getDbPath());
 
   const dirOrConfig = getWorkingDirectoryOrConfigFile();
   logger.debug(`Checking: ${dirOrConfig}`);
@@ -96,7 +93,7 @@ const bootstrap = async () => {
   const ffmpegVersion = await getFFMpegVersion(options.ffmpegPath);
   logger.info(`FFmpeg version: ${ffmpegVersion}`);
 
-  return options;
+  return { db, options };
 }
 
 export default bootstrap;
