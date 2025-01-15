@@ -1,5 +1,5 @@
-import { basename, extname, isAbsolute, resolve, sep } from 'path';
-import { statSync } from 'fs';
+import { basename, dirname, extname, isAbsolute, resolve, sep } from 'path';
+import { existsSync, mkdirSync, statSync } from 'fs';
 import { ValidatedOptions } from "./options";
 
 const validatePath = (inputPath: string, baseDirectory: string): string => {
@@ -37,6 +37,14 @@ const stringToArgs = (input: string): string[] => {
   return input.split(' ').filter(Boolean);
 }
 
+const ensureDirectoryExists = (filePath: string) => {
+  const dir = dirname(filePath);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+};
+
+// We assume that the output file will always be in the same directory regardless of the name
 const getOutputFileName = (input: string, options: ValidatedOptions): {
   output: string;
   finalName: string;
@@ -76,4 +84,11 @@ const fixVideoStreamDimensions = (args: string[]) => {
   }
 }
 
-export { validatePath, trimFileName, stringToArgs, getOutputFileName, fixVideoStreamDimensions };
+export {
+  validatePath,
+  trimFileName,
+  stringToArgs,
+  getOutputFileName,
+  fixVideoStreamDimensions,
+  ensureDirectoryExists
+};

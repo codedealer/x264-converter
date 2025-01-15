@@ -1,11 +1,18 @@
 import { basename, extname } from "path";
 import logger from "./logger";
 import cliProgress from 'cli-progress';
-import { fixVideoStreamDimensions, getOutputFileName, stringToArgs, trimFileName } from "./utils";
+import {
+  ensureDirectoryExists,
+  fixVideoStreamDimensions,
+  getOutputFileName,
+  stringToArgs,
+  trimFileName
+} from "./utils";
 import { displayPauseMenu } from "./menu";
 import { ValidatedOptions } from "./options";
 import { FFmpegExecutor } from "./ffmpeg";
-import { createWriteStream, renameSync } from "node:fs";
+import { createWriteStream, renameSync, unlinkSync } from "node:fs";
+import { existsSync } from "fs";
 
 const statusIcons = {
   ['in-progress']: '⏳', // Hourglass
@@ -34,6 +41,8 @@ class Encoder {
     const total = queue.length * 100;
 
     logger.debug(`Start processing ${queue.length} files`);
+
+    ensureDirectoryExists(this.options.dstDir);
 
     this.progressBar.start(total, 0, {
       filename: '',
@@ -132,14 +141,25 @@ class Encoder {
       this.writeErrorLog(errorLogFile, stdErrData);
     }
 
-    if (output.output !== output.finalName) {
-      // rename the file
-      logger.debug(`Renaming file: ${output.output} -> ${output.finalName}`);
-      renameSync(output.output, output.finalName);
-    }
+    this.finalizeFile(file, output.output, output.finalName);
 
     // finalize the progress bar just in case
     this.progressBar.update((fileIndex * 100) + 100);
+  }
+  private finalizeFile (file: string, output:string, finalName: string) {
+    if (this.options.deleteOriginal) {
+      logger.debug(`Deleting original file: ${file}`);
+      unlinkSync(file);
+    }
+    if (output === finalName) {
+      return;
+    }
+    if (existsSync(finalName)) {
+      logger.debug(`Deleting existing file: ${finalName}`);
+      unlinkSync(finalName);
+    }
+    logger.debug(`Renaming file: ${basename(output)} -> ${basename(finalName)}`);
+    renameSync(output, finalName);
   }
   private writeErrorLog (file: string, data: string) {
     const stream = createWriteStream(file, { flags: 'w' });
