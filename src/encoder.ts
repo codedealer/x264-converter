@@ -78,7 +78,15 @@ class Encoder implements Pausable {
         current: i + 1,
       });
 
-      await this.processFile(queue[i], i);
+      try {
+        await this.processFile(queue[i], i);
+      } catch (e) {
+        if (this.options.careful) {
+          throw e;
+        }
+
+        logger.error(`Error processing file: ${file}. ${(e as Error).message}`);
+      }
     }
 
     this.progressBar.stop();
