@@ -3,10 +3,10 @@ import inquirer from "inquirer";
 import bootstrap from "./bootstrap";
 import { displayMainMenu } from "./menu";
 import Encoder from "./encoder";
-import KeypressListener from "./keypressListener";
 import { readdirSync } from "node:fs";
 import { join } from "path";
 import { deleteDatabase, getDbPath, initializeDatabase } from "./db";
+import { PausableTask } from "./pausableTask";
 
 const main = async () => {
   let { db, options } = await bootstrap();
@@ -23,23 +23,8 @@ const main = async () => {
         const encoder = new Encoder(options);
         const mockQueue = readdirSync(options.srcDir).filter(file => file.endsWith('.mp4')).map(file => join(options.srcDir, file));
 
-        if (process.stdin.isPaused()) {
-          process.stdin.resume();
-          logger.debug('Resuming stdin stream');
-        }
-
-        const listener = new KeypressListener();
-        listener.on('p', () => encoder.requestStateChange('pause'));
-        listener.on('q', () => encoder.requestStateChange('stop'));
-        logger.info('Press "p" to pause, "q" to stop');
-
-        try {
-          await encoder.processQueue(mockQueue);
-        } catch (e) {
-          logger.error(e);
-        } finally {
-          listener.removeAllListeners();
-        }
+        const encoderTask = new PausableTask(encoder);
+        await encoderTask.runTask(mockQueue);
         break;
       case 'drop':
         // confirm dialog

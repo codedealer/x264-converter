@@ -13,6 +13,7 @@ import { ValidatedOptions } from "./options";
 import { FFmpegExecutor } from "./ffmpeg";
 import { createWriteStream, renameSync, unlinkSync } from "node:fs";
 import { existsSync } from "fs";
+import { Pausable } from "./pausableTask";
 
 const statusIcons = {
   ['in-progress']: '⏳', // Hourglass
@@ -21,7 +22,7 @@ const statusIcons = {
   done: '✅', // Check mark
 };
 
-class Encoder {
+class Encoder implements Pausable {
   public state: 'in-progress' | 'pause' | 'stop' | 'done';
   public options: ValidatedOptions;
   private progressBar: cliProgress.SingleBar;
@@ -31,7 +32,7 @@ class Encoder {
     this.options = options;
     this.progressBar = this.makeProgressBar();
   }
-  async processQueue (queue: string[]): Promise<void> {
+  async execute (queue: string[]): Promise<void> {
     if (queue.length === 0) {
       logger.warn('There are no suitable files to process');
       this.state = 'done';
@@ -92,6 +93,12 @@ class Encoder {
 
     this.state = state;
     this.progressBar.update({ status: statusIcons[state] });
+  }
+  pause (): void {
+    this.requestStateChange('pause');
+  }
+  stop (): void {
+    this.requestStateChange('stop');
   }
   private async processFile (file: string, fileIndex: number) {
     const ffmpegExecutor = new FFmpegExecutor(this.options.ffmpegPath);
