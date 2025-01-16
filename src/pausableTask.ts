@@ -20,12 +20,16 @@ class PausableTask {
       logger.debug('Resuming stdin stream');
     }
 
-    using listener = new KeypressListener();
+    const listener = new KeypressListener();
     listener.on('p', () => this.pausable.pause());
     listener.on('q', () => this.pausable.stop());
     logger.info('Press "p" to pause, "q" to stop');
 
-    await this.pausable.execute(...args);
+    try {
+      await this.pausable.execute(...args);
+    } finally {
+      listener.removeAllListeners();
+    }
   }
 }
 

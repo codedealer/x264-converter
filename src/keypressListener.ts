@@ -29,10 +29,6 @@ class KeypressListener {
       process.stdin.setRawMode(false);
     }
   }
-
-  [Symbol.dispose]() {
-    this.removeAllListeners();
-  }
 }
 
 export default KeypressListener;
