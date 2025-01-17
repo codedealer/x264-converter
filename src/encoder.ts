@@ -26,6 +26,7 @@ class Encoder implements Pausable {
   public state: 'in-progress' | 'pause' | 'stop' | 'done';
   public options: ValidatedOptions;
   private progressBar: cliProgress.SingleBar;
+  private ffmpegExecutor: FFmpegExecutor | null = null;
 
   constructor(options: ValidatedOptions) {
     this.state = 'in-progress';
@@ -107,15 +108,18 @@ class Encoder implements Pausable {
   }
   stop (): void {
     this.requestStateChange('stop');
+    if (this.ffmpegExecutor) {
+      this.ffmpegExecutor.stop();
+    }
   }
   private async processFile (file: string, fileIndex: number) {
-    const ffmpegExecutor = new FFmpegExecutor(this.options.ffmpegPath);
+    this.ffmpegExecutor = new FFmpegExecutor(this.options.ffmpegPath);
 
     let stdErrData = '';
-    ffmpegExecutor.on('stderr', (data) => {
+    this.ffmpegExecutor.on('stderr', (data) => {
       stdErrData += data.toString();
     });
-    ffmpegExecutor.on('progress', (percent: number) => {
+    this.ffmpegExecutor.on('progress', (percent: number) => {
       if (percent > 0) {
         this.progressBar.update((fileIndex * 100) + percent);
       }
@@ -144,12 +148,12 @@ class Encoder implements Pausable {
     const errorLogFile = `${output.finalName}_error.log`;
 
     try {
-      await ffmpegExecutor.execute(args);
+      await this.ffmpegExecutor.execute(args);
     } catch(e) {
       this.writeErrorLog(errorLogFile, stdErrData);
       throw e;
     } finally {
-      ffmpegExecutor.removeAllListeners();
+      this.ffmpegExecutor.removeAllListeners();
     }
 
     if (logger.isDebugEnabled()) {
@@ -157,6 +161,7 @@ class Encoder implements Pausable {
     }
 
     this.finalizeFile(file, output.output, output.finalName);
+    this.ffmpegExecutor = null;
 
     // finalize the progress bar just in case
     this.progressBar.update((fileIndex * 100) + 100);

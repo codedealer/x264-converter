@@ -1,8 +1,9 @@
-import { spawn, StdioOptions } from 'child_process';
+import { ChildProcess, spawn, StdioOptions } from 'child_process';
 import { EventEmitter } from 'events';
 
 class FFmpegExecutor extends EventEmitter {
   public command: string;
+  private ffmpegProcess: ChildProcess | null = null;
   constructor (path?: string) {
     super();
     this.command = path || 'ffmpeg';
@@ -10,15 +11,15 @@ class FFmpegExecutor extends EventEmitter {
   async execute(args: string[]): Promise<void> {
     return new Promise((resolve, reject) => {
       const stdio: StdioOptions = ['ignore', 'pipe', 'pipe'];
-      const ffmpeg = spawn(this.command, args, { stdio });
+      this.ffmpegProcess = spawn(this.command, args, { stdio });
       let duration = 0;
 
-      ffmpeg.stdout!.on('data', (data) => {
+      this.ffmpegProcess.stdout!.on('data', (data) => {
         this.emit('stdout', data.toString());
         this.parseProgress(data.toString(), duration);
       });
 
-      ffmpeg.stderr!.on('data', (data) => {
+      this.ffmpegProcess.stderr!.on('data', (data) => {
         this.emit('stderr', data.toString());
         if (data.toString().includes('Duration:')) {
           const match = data.toString().match(/Duration: (\d+):(\d+):(\d+\.\d+)/);
@@ -28,14 +29,22 @@ class FFmpegExecutor extends EventEmitter {
         }
       });
 
-      ffmpeg.on('close', (code) => {
+      this.ffmpegProcess.on('close', (code) => {
         if (code === 0) {
+          resolve();
+        } else if (code === null) {
+          // process was killed
           resolve();
         } else {
           reject(new Error(`ffmpeg process exited with code ${code}`));
         }
       });
     });
+  }
+  stop(): void {
+    if (this.ffmpegProcess) {
+      this.ffmpegProcess.kill('SIGINT');
+    }
   }
   private parseProgress(data: string, duration: number): void {
     const lines = data.split('\n');
