@@ -12,7 +12,7 @@ import { displayPauseMenu } from "./menu";
 import { ValidatedOptions } from "./options";
 import { FFmpegExecutor } from "./ffmpeg";
 import { createWriteStream, renameSync, unlinkSync } from "node:fs";
-import { existsSync } from "fs";
+import { existsSync, statSync, utimesSync } from "fs";
 import { Pausable } from "./pausableTask";
 
 const statusIcons = {
@@ -167,11 +167,17 @@ class Encoder implements Pausable {
     this.progressBar.update((fileIndex * 100) + 100);
   }
   private finalizeFile (file: string, output:string, finalName: string) {
+    const stats = statSync(file);
+    const { birthtime, mtime } = stats;
+
     if (this.options.deleteOriginal) {
       logger.debug(`Deleting original file: ${file}`);
       unlinkSync(file);
     }
     if (output === finalName) {
+      if (this.options.preserveAttributes) {
+        utimesSync(finalName, mtime, birthtime);
+      }
       return;
     }
     if (existsSync(finalName)) {
@@ -180,6 +186,9 @@ class Encoder implements Pausable {
     }
     logger.debug(`Renaming file: ${basename(output)} -> ${basename(finalName)}`);
     renameSync(output, finalName);
+    if (this.options.preserveAttributes) {
+      utimesSync(finalName, mtime, birthtime);
+    }
   }
   private writeErrorLog (file: string, data: string) {
     const stream = createWriteStream(file, { flags: 'w' });
