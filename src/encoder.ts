@@ -22,7 +22,7 @@ const statusIcons = {
   done: '✅', // Check mark
 };
 
-class Encoder implements Pausable {
+class Encoder implements Pausable<string> {
   public state: 'in-progress' | 'pause' | 'stop' | 'done';
   public options: ValidatedOptions;
   private progressBar: cliProgress.SingleBar;
@@ -33,11 +33,11 @@ class Encoder implements Pausable {
     this.options = options;
     this.progressBar = this.makeProgressBar();
   }
-  async execute (queue: string[]): Promise<void> {
+  async execute (queue: string[]): Promise<string[]> {
     if (queue.length === 0) {
       logger.warn('There are no suitable files to process');
       this.state = 'done';
-      return;
+      return [];
     }
 
     const total = queue.length * 100;
@@ -83,6 +83,7 @@ class Encoder implements Pausable {
         await this.processFile(queue[i], i);
       } catch (e) {
         if (this.options.careful) {
+          this.progressBar.stop();
           throw e;
         }
 
@@ -90,10 +91,14 @@ class Encoder implements Pausable {
       }
     }
 
-    this.progressBar.stop();
     if (this.state !== 'done' && this.state !== 'stop') {
       this.state = 'done';
     }
+    this.progressBar.update({ status: statusIcons[this.state] });
+    this.progressBar.stop();
+
+    // TODO: return processed files
+    return [];
   }
   requestStateChange (state: 'pause' | 'stop'): void {
     if (this.state !== 'in-progress') {
@@ -204,7 +209,7 @@ class Encoder implements Pausable {
     const progressBar = new cliProgress.SingleBar({
       format: '{filename} |{bar}| {percentage}% | {current}/{queue} | {status}',
       hideCursor: true,
-      clearOnComplete: true,
+      clearOnComplete: false,
       fps: 10,
     }, cliProgress.Presets.shades_classic);
 

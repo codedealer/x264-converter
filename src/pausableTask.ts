@@ -1,20 +1,20 @@
 import KeypressListener from "./keypressListener";
 import logger from "./logger";
 
-export interface Pausable {
+export interface Pausable<T> {
   pause(): void;
   stop(): void;
-  execute(...args: unknown[]): Promise<void>;
+  execute(...args: unknown[]): Promise<T[]>;
 }
 
-class PausableTask {
-  private pausable: Pausable;
+class PausableTask<T = void> {
+  private pausable: Pausable<T>;
 
-  constructor(pausable: Pausable) {
+  constructor(pausable: Pausable<T>) {
     this.pausable = pausable;
   }
 
-  async runTask(...args: unknown[]): Promise<void> {
+  async runTask(...args: unknown[]): Promise<T[]> {
     if (process.stdin.isPaused()) {
       process.stdin.resume();
       logger.debug('Resuming stdin stream');
@@ -26,7 +26,7 @@ class PausableTask {
     logger.info('Press "p" to pause, "q" to stop');
 
     try {
-      await this.pausable.execute(...args);
+      return await this.pausable.execute(...args);
     } finally {
       listener.removeAllListeners();
     }

@@ -7,6 +7,7 @@ import { readdirSync } from "node:fs";
 import { join } from "path";
 import { deleteDatabase, getDbPath, initializeDatabase } from "./db";
 import { PausableTask } from "./pausableTask";
+import Scanner from "./scanner";
 
 const main = async () => {
   let { db, options } = await bootstrap();
@@ -19,6 +20,12 @@ const main = async () => {
     const action = await displayMainMenu();
 
     switch (action) {
+      case 'scan':
+        const scanner = new Scanner(db, options);
+        const scannerTask = new PausableTask(scanner);
+        const unprocessedFiles = await scannerTask.runTask(options.srcDir);
+        logger.debug(`Unprocessed: \n${unprocessedFiles.map(f => f.fileName).join('\n')}`);
+        break;
       case 'process':
         const encoder = new Encoder(options);
         const mockQueue = readdirSync(options.srcDir).filter(file => file.endsWith('.mp4')).map(file => join(options.srcDir, file));
