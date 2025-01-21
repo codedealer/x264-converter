@@ -38,7 +38,7 @@ const initializeDatabase = (path: string) => {
           ino TEXT UNIQUE NOT NULL,    -- Inode-based unique identifier
           path TEXT,                   -- Path for reference
           processed BOOLEAN DEFAULT 0, -- Conversion status
-          mtime INTEGER,               -- Last modification time (optional)
+          mtime REAL,                  -- Last modification time (optional)
           size INTEGER,                -- File size in bytes (optional)
           media_info TEXT              -- JSON string with codec and resolution info
       );
@@ -50,4 +50,24 @@ const initializeDatabase = (path: string) => {
   return db;
 }
 
-export { getDbPath, initializeDatabase, deleteDatabase };
+interface File {
+  id: number;
+  ino: string;
+  path: string;
+  processed: boolean;
+  mtime: number | null;
+  size: number | null;
+  media_info: string | null;
+}
+
+const getFileByIno = (db: Database.Database, ino: number) => {
+  const stmt = db.prepare('SELECT * FROM files WHERE ino = ?');
+  const res = stmt.get(ino) as File | undefined;
+  if (!res) return;
+
+  // TODO: prepare media_info field
+
+  return res;
+}
+
+export { getDbPath, initializeDatabase, deleteDatabase, getFileByIno };
