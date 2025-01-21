@@ -60,7 +60,7 @@ interface File {
   media_info: string | null;
 }
 
-const getFileByIno = (db: Database.Database, ino: number) => {
+const getFileByIno = (db: Database.Database, ino: string) => {
   const stmt = db.prepare('SELECT * FROM files WHERE ino = ?');
   const res = stmt.get(ino) as File | undefined;
   if (!res) return;
