@@ -35,7 +35,7 @@ const initializeDatabase = (path: string) => {
       CREATE TABLE IF NOT EXISTS files
       (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          ino TEXT UNIQUE NOT NULL,    -- Inode-based unique identifier
+          ino INTEGER UNIQUE NOT NULL,    -- Inode-based unique identifier
           path TEXT,                   -- Path for reference
           processed BOOLEAN DEFAULT 0, -- Conversion status
           mtime REAL,                  -- Last modification time (optional)
@@ -52,7 +52,7 @@ const initializeDatabase = (path: string) => {
 
 interface File {
   id: number;
-  ino: string;
+  ino: number;
   path: string;
   processed: boolean;
   mtime: number | null;
@@ -60,7 +60,7 @@ interface File {
   media_info: string | null;
 }
 
-const getFileByIno = (db: Database.Database, ino: string) => {
+const getFileByIno = (db: Database.Database, ino: number) => {
   const stmt = db.prepare('SELECT * FROM files WHERE ino = ?');
   const res = stmt.get(ino) as File | undefined;
   if (!res) return;
