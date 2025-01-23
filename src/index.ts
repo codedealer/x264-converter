@@ -24,7 +24,7 @@ const main = async () => {
         const scanner = new Scanner(db, options);
         const scannerTask = new PausableTask(scanner);
         const unprocessedFiles = await scannerTask.runTask(options.srcDir);
-        logger.debug(`Unprocessed: \n${unprocessedFiles.map(f => f.fileName).join('\n')}`);
+        logger.debug(`Unprocessed: \n${unprocessedFiles.map(f => f.path).join('\n')}`);
         break;
       case 'process':
         const encoder = new Encoder(options);
