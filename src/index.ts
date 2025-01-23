@@ -15,6 +15,10 @@ const main = async () => {
   logger.info(`Working directory${options.deep ? ' (and subdirectories)' : ''}: ${options.srcDir}`);
   logger.info(`Output directory: ${options.dstDir}`);
 
+  if (options.filterBy?.codec && options.force) {
+    logger.notice('You have force enabled in the config file, so ffprobing will be skipped and codec filtering will only be performed on the files cached from previous runs (if there were any). If this is unintentional, edit the config and reload.');
+  }
+
   let exit = false;
   while (!exit) {
     const action = await displayMainMenu();

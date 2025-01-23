@@ -24,6 +24,14 @@ const optionsSchema: JSONSchemaType<Options> = {
       },
       required: ['ffmpegCommand'],
     },
+    filterBy: {
+      type: 'object',
+      properties: {
+        extension: { type: 'string', nullable: true },
+        codec: { type: 'string', nullable: true },
+      },
+      nullable: true,
+    },
   },
   required: ['srcDir', 'deleteOriginal', 'preserveAttributes', 'careful', 'deep', 'watch', 'force', 'videoOptions'],
   additionalProperties: false,

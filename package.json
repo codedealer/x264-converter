@@ -23,12 +23,13 @@
   "author": "",
   "license": "GPL-3.0-or-later",
   "dependencies": {
+    "@types/micromatch": "^4.0.9",
     "ajv": "^8.17.1",
     "better-sqlite3": "^11.7.2",
-    "chokidar": "^4.0.3",
     "cli-progress": "^3.12.0",
     "fast-glob": "^3.3.3",
     "inquirer": "^12.3.0",
+    "micromatch": "^4.0.8",
     "winston": "^3.17.0"
   },
   "devDependencies": {

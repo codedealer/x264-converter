@@ -11,6 +11,7 @@ import Database from "better-sqlite3";
 import { getVideoFileByIno, insertVideoFile, updateVideoFile, VideoFile } from "./db";
 import { FFmpegExecutor } from "./ffmpeg";
 import { stringToArgs } from "./utils";
+import { isMatch } from "micromatch";
 
 const statusIcons = {
   ['in-progress']: '⏳', // Hourglass
@@ -75,6 +76,14 @@ class Scanner implements Pausable<VideoFile> {
 
       try {
         const fileInfo = this.readFileInfo(files[i]);
+
+        if (this.options.filterBy?.extension) {
+          if (!files[i].endsWith(this.options.filterBy.extension)) {
+            this.progressBar.update(i + 1, { status: statusIcons[this.state] });
+            continue;
+          }
+        }
+
         let videoFile = getVideoFileByIno(this.db, fileInfo.inode);
         let needsProbe = false;
         let needsCreate = false;
@@ -109,6 +118,14 @@ class Scanner implements Pausable<VideoFile> {
             videoFile.media_info = mediaInfo;
             needsUpdate = true;
           }
+        }
+
+        if (
+          videoFile.media_info &&
+          this.options.filterBy?.codec &&
+          !isMatch(videoFile.media_info.codec, this.options.filterBy.codec)) {
+          this.progressBar.update(i + 1, { status: statusIcons[this.state] });
+          continue;
         }
 
         if (needsCreate) {

@@ -30,6 +30,12 @@ export interface Options {
     ffmpegCommand: string;
     outputContainer?: string
   }
+  filterBy?: {
+    // filter by file extension
+    extension?: string;
+    // filter by codec
+    codec?: string;
+  }
 }
 
 export interface ValidatedOptions extends Options {
