@@ -75,66 +75,11 @@ class Scanner implements Pausable<VideoFile> {
       }
 
       try {
-        const fileInfo = this.readFileInfo(files[i]);
+        const videoFile = await this.scanFile(files[i]);
 
-        if (this.options.filterBy?.extension) {
-          if (!files[i].endsWith(this.options.filterBy.extension)) {
-            this.progressBar.update(i + 1, { status: statusIcons[this.state] });
-            continue;
-          }
-        }
-
-        let videoFile = getVideoFileByIno(this.db, fileInfo.inode);
-        let needsProbe = false;
-        let needsCreate = false;
-        let needsUpdate = false;
         if (videoFile) {
-          if (videoFile.processed) {
-            this.progressBar.update(i + 1, { status: statusIcons[this.state] });
-            continue;
-          } else if (!videoFile.media_info) {
-            needsProbe = true;
-          }
-          if (videoFile.path !== fileInfo.fileName) {
-            videoFile.path = fileInfo.fileName;
-            needsUpdate = true;
-          }
-        } else {
-          needsProbe = true;
-          needsCreate = true;
-          videoFile = {
-            ino: fileInfo.inode,
-            path: fileInfo.fileName,
-            processed: false,
-            mtime: fileInfo.mtime,
-            size: fileInfo.size,
-            media_info: null,
-          }
+          processedFiles.push(videoFile);
         }
-
-        if (!this.options.force && needsProbe) {
-          const mediaInfo = await this.probeFile(fileInfo);
-          if (mediaInfo) {
-            videoFile.media_info = mediaInfo;
-            needsUpdate = true;
-          }
-        }
-
-        if (
-          videoFile.media_info &&
-          this.options.filterBy?.codec &&
-          !isMatch(videoFile.media_info.codec, this.options.filterBy.codec)) {
-          this.progressBar.update(i + 1, { status: statusIcons[this.state] });
-          continue;
-        }
-
-        if (needsCreate) {
-          insertVideoFile(this.db, videoFile);
-        } else if (needsUpdate) {
-          updateVideoFile(this.db, videoFile);
-        }
-
-        processedFiles.push(videoFile);
       } catch (e) {
         if (this.options.careful) {
           this.progressBar.stop();
@@ -152,6 +97,72 @@ class Scanner implements Pausable<VideoFile> {
     this.progressBar.stop();
 
     return processedFiles;
+  }
+
+  /**
+   * Scan a single file
+   * Returns VideoFile if the file needs to be processed, null otherwise
+   * @param file
+   * @private
+   */
+  private async scanFile (file: string): Promise<VideoFile | null> {
+    const fileInfo = this.readFileInfo(file);
+
+    if (this.options.filterBy?.extension) {
+      if (!file.endsWith(this.options.filterBy.extension)) {
+        return null;
+      }
+    }
+
+    let videoFile = getVideoFileByIno(this.db, fileInfo.inode);
+    let needsProbe = false;
+    let needsCreate = false;
+    let needsUpdate = false;
+    if (videoFile) {
+      if (videoFile.processed) {
+        return null;
+      } else if (!videoFile.media_info) {
+        needsProbe = true;
+      }
+      if (videoFile.path !== fileInfo.fileName) {
+        videoFile.path = fileInfo.fileName;
+        needsUpdate = true;
+      }
+    } else {
+      needsProbe = true;
+      needsCreate = true;
+      videoFile = {
+        ino: fileInfo.inode,
+        path: fileInfo.fileName,
+        processed: false,
+        mtime: fileInfo.mtime,
+        size: fileInfo.size,
+        media_info: null,
+      }
+    }
+
+    if (!this.options.force && needsProbe) {
+      const mediaInfo = await this.probeFile(fileInfo);
+      if (mediaInfo) {
+        videoFile.media_info = mediaInfo;
+        needsUpdate = true;
+      }
+    }
+
+    if (
+      videoFile.media_info &&
+      this.options.filterBy?.codec &&
+      !isMatch(videoFile.media_info.codec, this.options.filterBy.codec)) {
+      return null;
+    }
+
+    if (needsCreate) {
+      insertVideoFile(this.db, videoFile);
+    } else if (needsUpdate) {
+      updateVideoFile(this.db, videoFile);
+    }
+
+    return videoFile;
   }
 
   private readFileInfo (file: string) {
