@@ -13,7 +13,6 @@ const optionsSchema: JSONSchemaType<Options> = {
     preserveAttributes: { type: 'boolean' },
     careful: { type: 'boolean' },
     deep: { type: 'number' },
-    watch: { type: 'boolean' },
     ffmpegPath: { type: 'string', nullable: true },
     force: { type: 'boolean' },
     videoOptions: {
@@ -33,7 +32,7 @@ const optionsSchema: JSONSchemaType<Options> = {
       nullable: true,
     },
   },
-  required: ['srcDir', 'deleteOriginal', 'preserveAttributes', 'careful', 'deep', 'watch', 'force', 'videoOptions'],
+  required: ['srcDir', 'deleteOriginal', 'preserveAttributes', 'careful', 'deep', 'force', 'videoOptions'],
   additionalProperties: false,
 };
 

@@ -20,8 +20,6 @@ export interface Options {
   careful: boolean;
   // whether to scan subdirectories
   deep: number;
-  // watch for new files
-  watch: boolean;
   // path to ffmpeg executable
   ffmpegPath?: string;
   // whether to skip checks and reencode every file
@@ -53,7 +51,6 @@ const defaultOptions: Options = {
   preserveAttributes: true,
   careful: false,
   deep: 0,
-  watch: false,
   force: false,
   videoOptions: {
     ffmpegCommand: '',
