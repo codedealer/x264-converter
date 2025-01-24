@@ -1,10 +1,11 @@
 import KeypressListener from "./keypressListener";
 import logger from "./logger";
+import PausableTaskResult from "./pausableTaskResult";
 
 export interface Pausable<T> {
   pause(): void;
   stop(): void;
-  execute(...args: unknown[]): Promise<T[]>;
+  execute(...args: unknown[]): Promise<PausableTaskResult<T>>;
 }
 
 class PausableTask<T = void> {
@@ -14,7 +15,7 @@ class PausableTask<T = void> {
     this.pausable = pausable;
   }
 
-  async runTask(...args: unknown[]): Promise<T[]> {
+  async runTask(...args: unknown[]): Promise<PausableTaskResult<T>> {
     if (process.stdin.isPaused()) {
       process.stdin.resume();
       logger.debug('Resuming stdin stream');

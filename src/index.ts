@@ -3,8 +3,6 @@ import inquirer from "inquirer";
 import bootstrap from "./bootstrap";
 import { displayMainMenu } from "./menu";
 import Encoder from "./encoder";
-import { readdirSync } from "node:fs";
-import { join } from "path";
 import { deleteDatabase, getDbPath, initializeDatabase } from "./db";
 import { PausableTask } from "./pausableTask";
 import Scanner from "./scanner";
@@ -27,15 +25,16 @@ const main = async () => {
       case 'scan':
         const scanner = new Scanner(db, options);
         const scannerTask = new PausableTask(scanner);
-        const unprocessedFiles = await scannerTask.runTask(options.srcDir);
-        logger.debug(`Unprocessed: \n${unprocessedFiles.map(f => f.path).join('\n')}`);
+        const result = await scannerTask.runTask(options.srcDir);
+        logger.info(result.report());
+        logger.debug(`Success:\n${result.success.map(file => file.path).join('\n')}`);
+        logger.debug(`Skipped:\n${result.skipped.join('\n')}`);
         break;
       case 'process':
         const encoder = new Encoder(options);
-        const mockQueue = readdirSync(options.srcDir).filter(file => file.endsWith('.mp4')).map(file => join(options.srcDir, file));
 
         const encoderTask = new PausableTask(encoder);
-        await encoderTask.runTask(mockQueue);
+        await encoderTask.runTask([]);
         break;
       case 'drop':
         // confirm dialog

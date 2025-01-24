@@ -14,6 +14,8 @@ import { FFmpegExecutor } from "./ffmpeg";
 import { createWriteStream, renameSync, unlinkSync } from "node:fs";
 import { existsSync, statSync, utimesSync } from "fs";
 import { Pausable } from "./pausableTask";
+import { VideoFile } from "./db";
+import PausableTaskResult from "./pausableTaskResult";
 
 const statusIcons = {
   ['in-progress']: '⏳', // Hourglass
@@ -22,7 +24,7 @@ const statusIcons = {
   done: '✅', // Check mark
 };
 
-class Encoder implements Pausable<string> {
+class Encoder implements Pausable<VideoFile> {
   public state: 'in-progress' | 'pause' | 'stop' | 'done';
   public options: ValidatedOptions;
   private progressBar: cliProgress.SingleBar;
@@ -33,11 +35,13 @@ class Encoder implements Pausable<string> {
     this.options = options;
     this.progressBar = this.makeProgressBar();
   }
-  async execute (queue: string[]): Promise<string[]> {
+  async execute (queue: VideoFile[]): Promise<PausableTaskResult<VideoFile>> {
+    const result = new PausableTaskResult<VideoFile>(queue.length);
+
     if (queue.length === 0) {
       logger.warn('There are no suitable files to process');
       this.state = 'done';
-      return [];
+      return result;
     }
 
     const total = queue.length * 100;
@@ -71,7 +75,7 @@ class Encoder implements Pausable<string> {
 
         this.state = 'in-progress';
       }
-      const file = this.prepareFileName(queue[i]);
+      const file = this.prepareFileName(queue[i].path);
 
       this.progressBar.update(i * 100, {
         filename: `${file}`,
@@ -81,13 +85,15 @@ class Encoder implements Pausable<string> {
 
       try {
         await this.processFile(queue[i], i);
+        result.success.push(queue[i]);
       } catch (e) {
+        result.failed.push({ item: queue[i].path, error: e as Error });
         if (this.options.careful) {
           this.progressBar.stop();
           throw e;
         }
 
-        logger.error(`Error processing file: ${file}. ${(e as Error).message}`);
+        logger.debug(`Error processing file: ${file}. ${(e as Error).message}`);
       }
     }
 
@@ -97,8 +103,7 @@ class Encoder implements Pausable<string> {
     this.progressBar.update({ status: statusIcons[this.state] });
     this.progressBar.stop();
 
-    // TODO: return processed files
-    return [];
+    return result;
   }
   requestStateChange (state: 'pause' | 'stop'): void {
     if (this.state !== 'in-progress') {
@@ -117,7 +122,7 @@ class Encoder implements Pausable<string> {
       this.ffmpegExecutor.stop();
     }
   }
-  private async processFile (file: string, fileIndex: number) {
+  private async processFile (file: VideoFile, fileIndex: number) {
     this.ffmpegExecutor = new FFmpegExecutor(this.options.ffmpegPath);
 
     let stdErrData = '';
@@ -132,12 +137,17 @@ class Encoder implements Pausable<string> {
 
     const args = stringToArgs(this.options.videoOptions.ffmpegCommand);
 
-    fixVideoStreamDimensions(args);
+    if (file.media_info) {
+      if (file.media_info.width % 2 !== 0 || file.media_info.height % 2 !== 0) {
+        fixVideoStreamDimensions(args);
+      }
+    }
+
     // add video progress
     args.push('-progress', 'pipe:1');
 
-    args.unshift('-i', file, '-y');
-    const output = getOutputFileName(file, this.options)
+    args.unshift('-i', file.path, '-y');
+    const output = getOutputFileName(file.path, this.options)
     args.push(output.output);
 
     logger.debug(`Calling ffmpeg with arguments:`);
@@ -165,7 +175,7 @@ class Encoder implements Pausable<string> {
       this.writeErrorLog(errorLogFile, stdErrData);
     }
 
-    this.finalizeFile(file, output.output, output.finalName);
+    this.finalizeFile(file.path, output.output, output.finalName);
     this.ffmpegExecutor = null;
 
     // finalize the progress bar just in case

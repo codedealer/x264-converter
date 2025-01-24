@@ -12,6 +12,7 @@ import { getVideoFileByIno, insertVideoFile, updateVideoFile, VideoFile } from "
 import { FFmpegExecutor } from "./ffmpeg";
 import { stringToArgs } from "./utils";
 import { isMatch } from "micromatch";
+import PausableTaskResult from "./pausableTaskResult";
 
 const statusIcons = {
   ['in-progress']: '⏳', // Hourglass
@@ -41,18 +42,17 @@ class Scanner implements Pausable<VideoFile> {
     this.requestStateChange('stop');
   }
 
-  async execute(rootDir: string): Promise<VideoFile[]> {
+  async execute(rootDir: string): Promise<PausableTaskResult<VideoFile>> {
     const files = await this.getFileList(rootDir);
+    const result = new PausableTaskResult<VideoFile>(files.length);
     if (files.length === 0) {
       logger.warn('No eligible files found');
       this.state = 'done';
-      return [];
+      return result;
     }
     logger.debug(`Found ${files.length} files to process`);
 
     this.progressBar.start(files.length, 0, { status: statusIcons[this.state] });
-
-    const processedFiles: VideoFile[] = [];
 
     for (let i = 0; i < files.length; i++) {
       if (this.state === 'done' || this.state === 'stop') {
@@ -78,15 +78,19 @@ class Scanner implements Pausable<VideoFile> {
         const videoFile = await this.scanFile(files[i]);
 
         if (videoFile) {
-          processedFiles.push(videoFile);
+          result.success.push(videoFile);
+        } else {
+          result.skipped.push(files[i]);
         }
       } catch (e) {
+        result.failed.push({ item: files[i], error: e as Error });
+
         if (this.options.careful) {
           this.progressBar.stop();
           throw e;
         }
 
-        logger.error(`Error processing file: ${files[i]}. ${(e as Error).message}`);
+        logger.debug(`Error processing file: ${files[i]}. ${(e as Error).message}`);
       }
 
       this.progressBar.update(i + 1, { status: statusIcons[this.state] });
@@ -96,7 +100,7 @@ class Scanner implements Pausable<VideoFile> {
     this.progressBar.update({ status: statusIcons[this.state] });
     this.progressBar.stop();
 
-    return processedFiles;
+    return result;
   }
 
   /**
