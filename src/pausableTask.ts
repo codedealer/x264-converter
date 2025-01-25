@@ -1,8 +1,10 @@
 import KeypressListener from "./keypressListener";
 import logger from "./logger";
 import PausableTaskResult from "./pausableTaskResult";
+import { StopWatch } from "stopwatch-node";
 
 export interface Pausable<T> {
+  timer: StopWatch;
   pause(): void;
   stop(): void;
   execute(...args: unknown[]): Promise<PausableTaskResult<T>>;
@@ -30,6 +32,9 @@ class PausableTask<T = void> {
       return await this.pausable.execute(...args);
     } finally {
       listener.removeAllListeners();
+      if (this.pausable.timer.isRunning()) {
+        this.pausable.timer.stop();
+      }
     }
   }
 }

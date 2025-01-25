@@ -13,6 +13,8 @@ import { FFmpegExecutor } from "./ffmpeg";
 import { stringToArgs } from "./utils";
 import { isMatch } from "micromatch";
 import PausableTaskResult from "./pausableTaskResult";
+import { StopWatch } from "stopwatch-node";
+import humanizeDuration from 'humanize-duration';
 
 const statusIcons = {
   ['in-progress']: '⏳', // Hourglass
@@ -25,12 +27,14 @@ class Scanner implements Pausable<VideoFile> {
   public state: 'in-progress' | 'pause' | 'stop' | 'done';
   public options: ValidatedOptions;
   public db: Database.Database;
+  public timer: StopWatch;
   private progressBar: cliProgress.SingleBar;
 
   constructor(db: Database.Database, options: ValidatedOptions) {
     this.state = 'in-progress';
     this.options = options;
     this.db = db;
+    this.timer = new StopWatch();
     this.progressBar = this.makeProgressBar();
   }
 
@@ -54,11 +58,15 @@ class Scanner implements Pausable<VideoFile> {
 
     this.progressBar.start(files.length, 0, { status: statusIcons[this.state] });
 
+    this.timer.start();
+
     for (let i = 0; i < files.length; i++) {
       if (this.state === 'done' || this.state === 'stop') {
+        this.timer.stop();
         break;
       }
       if (this.state === 'pause') {
+        this.timer.stop();
         logger.warn('Scanning paused');
         const action = await displayPauseMenu();
         if (action === 'stop') {
@@ -72,6 +80,7 @@ class Scanner implements Pausable<VideoFile> {
         }
 
         this.state = 'in-progress';
+        this.timer.start();
       }
 
       try {
@@ -96,9 +105,16 @@ class Scanner implements Pausable<VideoFile> {
       this.progressBar.update(i + 1, { status: statusIcons[this.state] });
     }
 
+    if (this.timer.isRunning()) {
+      this.timer.stop();
+    }
     this.state = 'done';
     this.progressBar.update({ status: statusIcons[this.state] });
     this.progressBar.stop();
+    result.timeElapsed = {
+      ms: this.timer.getTotalTime(),
+      time: humanizeDuration(this.timer.getTotalTime()),
+    }
 
     return result;
   }

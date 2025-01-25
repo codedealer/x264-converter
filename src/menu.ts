@@ -2,12 +2,11 @@ import inquirer from "inquirer";
 
 interface Choices {
   name: string;
-  value: 'quit' | 'process' | 'drop' | 'scan' | 'toggleForce';
+  value: 'quit' | 'process' | 'drop' | 'toggleForce';
 }
 
 const displayMainMenu = async () => {
   const choices: Choices[] = [
-    { name: 'Scan the folder', value: 'scan' },
     { name: 'Process the folder', value: 'process' },
     { name: 'Toggle force state', value: 'toggleForce' },
     { name: '[!] Drop the database', value: 'drop' },

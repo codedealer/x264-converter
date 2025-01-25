@@ -16,6 +16,8 @@ import { existsSync, statSync, utimesSync } from "fs";
 import { Pausable } from "./pausableTask";
 import { VideoFile } from "./db";
 import PausableTaskResult from "./pausableTaskResult";
+import { StopWatch } from "stopwatch-node";
+import humanizeDuration from 'humanize-duration';
 
 const statusIcons = {
   ['in-progress']: '⏳', // Hourglass
@@ -27,12 +29,14 @@ const statusIcons = {
 class Encoder implements Pausable<VideoFile> {
   public state: 'in-progress' | 'pause' | 'stop' | 'done';
   public options: ValidatedOptions;
+  public timer: StopWatch;
   private progressBar: cliProgress.SingleBar;
   private ffmpegExecutor: FFmpegExecutor | null = null;
 
   constructor(options: ValidatedOptions) {
     this.state = 'in-progress';
     this.options = options;
+    this.timer = new StopWatch();
     this.progressBar = this.makeProgressBar();
   }
   async execute (queue: VideoFile[]): Promise<PausableTaskResult<VideoFile>> {
@@ -56,11 +60,16 @@ class Encoder implements Pausable<VideoFile> {
       current: 1,
       queue: queue.length,
     });
+
+    this.timer.start();
+
     for (let i = 0; i < queue.length; i++) {
       if (this.state === 'done' || this.state === 'stop') {
+        this.timer.stop();
         break;
       }
       if (this.state === 'pause') {
+        this.timer.stop();
         logger.warn('Processing paused');
         const action = await displayPauseMenu();
         if (action === 'stop') {
@@ -74,6 +83,7 @@ class Encoder implements Pausable<VideoFile> {
         }
 
         this.state = 'in-progress';
+        this.timer.start();
       }
       const file = this.prepareFileName(queue[i].path);
 
@@ -97,11 +107,18 @@ class Encoder implements Pausable<VideoFile> {
       }
     }
 
+    if (this.timer.isRunning()) {
+      this.timer.stop();
+    }
     if (this.state !== 'done' && this.state !== 'stop') {
       this.state = 'done';
     }
     this.progressBar.update({ status: statusIcons[this.state] });
     this.progressBar.stop();
+    result.timeElapsed = {
+      ms: this.timer.getTotalTime(),
+      time: humanizeDuration(this.timer.getTotalTime()),
+    }
 
     return result;
   }

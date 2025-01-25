@@ -10,12 +10,12 @@ import { Options } from "./options";
 
 const checkForceState = (options: Options) => {
   if (options.force) {
-    logger.notice('Force mode enabled, ffprobing will be skipped.');
+    logger.warn('Force mode enabled, ffprobing will be skipped.');
     if (options.filterBy?.codec) {
       logger.warn('You have codec filter set in the config. Codec filtering will only be performed on the files cached from previous runs (if there were any). If this is unintentional, edit the config and reload.');
     }
   } else {
-    logger.notice('Force mode disabled, ffprobing will be performed.');
+    logger.info('Force mode disabled, ffprobing will be performed.');
   }
 }
 
@@ -35,22 +35,30 @@ const main = async () => {
       case 'process':
         const scanner = new Scanner(db, options);
         const scannerTask = new PausableTask(scanner);
-        const result = await scannerTask.runTask(options.srcDir);
+        const scanResult = await scannerTask.runTask(options.srcDir);
 
-        if (result.totalQueueLength === 0) break;
+        if (scanResult.totalQueueLength === 0) break;
 
-        logger.info(result.report());
-        logger.debug(`Success:\n${result.success.map(file => file.path).join('\n')}`);
-        logger.debug(`Skipped:\n${result.skipped.join('\n')}`);
+        logger.info(scanResult.report());
+        if (process.env.DEBUG) {
+          logger.debug(`Success:\n${scanResult.success.map(file => file.path).join('\n')}`);
+          logger.debug(`Skipped:\n${scanResult.skipped.join('\n')}`);
+        }
 
-        if (result.success.length < 1) {
+        if (scanResult.success.length < 1) {
           logger.info('No files to process');
           break;
         }
 
         const encoder = new Encoder(options);
         const encoderTask = new PausableTask(encoder);
-        await encoderTask.runTask(result.success);
+        const encodeResult = await encoderTask.runTask(scanResult.success);
+        logger.info(encodeResult.report());
+        if (process.env.DEBUG) {
+          logger.debug(`Success:\n${encodeResult.success.map(file => file.path).join('\n')}`);
+          logger.debug(`Skipped:\n${encodeResult.skipped.join('\n')}`);
+        }
+
         break;
       case 'toggleForce':
         options.force = !options.force;

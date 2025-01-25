@@ -23,12 +23,18 @@ importers:
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
+      humanize-duration:
+        specifier: ^3.32.1
+        version: 3.32.1
       inquirer:
         specifier: ^12.3.0
         version: 12.3.0(@types/node@22.10.5)
       micromatch:
         specifier: ^4.0.8
         version: 4.0.8
+      stopwatch-node:
+        specifier: ^1.1.0
+        version: 1.1.0
       winston:
         specifier: ^3.17.0
         version: 3.17.0
@@ -39,6 +45,9 @@ importers:
       '@types/cli-progress':
         specifier: ^3.11.6
         version: 3.11.6
+      '@types/humanize-duration':
+        specifier: ^3.27.4
+        version: 3.27.4
       '@types/node':
         specifier: ^22.10.5
         version: 22.10.5
@@ -234,6 +243,9 @@ packages:
 
   '@types/cli-progress@3.11.6':
     resolution: {integrity: sha512-cE3+jb9WRlu+uOSAugewNpITJDt1VF8dHOopPO4IABFc3SXYL5WE/+PTz/FCdZRRfIujiWW3n3aMbv1eIGVRWA==}
+
+  '@types/humanize-duration@3.27.4':
+    resolution: {integrity: sha512-yaf7kan2Sq0goxpbcwTQ+8E9RP6HutFBPv74T/IA/ojcHKhuKVlk2YFYyHhWZeLvZPzzLE3aatuQB4h0iqyyUA==}
 
   '@types/micromatch@4.0.9':
     resolution: {integrity: sha512-7V+8ncr22h4UoYRLnLXSpTxjQrNUXtWHGeMPRJt1nULXI57G9bIcpyrHlmrQ7QK24EyyuXvYcSSWAM8GA9nqCg==}
@@ -515,6 +527,9 @@ packages:
   https-proxy-agent@5.0.1:
     resolution: {integrity: sha512-dFcAjpTQFgoLMzC2VwU+C/CbS7uRL0lWmxDITmqm7C+7F0Odmj6s9l6alZc6AELXhrnggM2CeWSXHGOdX2YtwA==}
     engines: {node: '>= 6'}
+
+  humanize-duration@3.32.1:
+    resolution: {integrity: sha512-inh5wue5XdfObhu/IGEMiA1nUXigSGcaKNemcbLRKa7jXYGDZXr3LoT9pTIzq2hPEbld7w/qv9h+ikWGz8fL1g==}
 
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
@@ -828,6 +843,9 @@ packages:
 
   stack-trace@0.0.10:
     resolution: {integrity: sha512-KGzahc7puUKkzyMt+IqAep+TVNbKP+k2Lmwhub39m1AsTSkaDutx56aDCo+HLDzf/D26BIHTJWNiTG1KAJiQCg==}
+
+  stopwatch-node@1.1.0:
+    resolution: {integrity: sha512-TpRTztFjiq/B5wn84oKK0YHHtprgrC8pLOUkqVU+MN+2DgdBMaEIeSyGeAn2n+7mT9zrfJyhM33Yw4j/rRV2Bg==}
 
   stream-meter@1.0.4:
     resolution: {integrity: sha512-4sOEtrbgFotXwnEuzzsQBYEV1elAeFSO8rSGeTwabuX1RRn/kEq9JVH7I0MRBhKVRR0sJkr0M0QCH7yOLf9fhQ==}
@@ -1207,6 +1225,8 @@ snapshots:
     dependencies:
       '@types/node': 22.10.5
 
+  '@types/humanize-duration@3.27.4': {}
+
   '@types/micromatch@4.0.9':
     dependencies:
       '@types/braces': 3.0.5
@@ -1511,6 +1531,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  humanize-duration@3.32.1: {}
+
   iconv-lite@0.4.24:
     dependencies:
       safer-buffer: 2.1.2
@@ -1799,6 +1821,8 @@ snapshots:
       is-arrayish: 0.3.2
 
   stack-trace@0.0.10: {}
+
+  stopwatch-node@1.1.0: {}
 
   stream-meter@1.0.4:
     dependencies:
