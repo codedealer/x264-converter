@@ -50,7 +50,7 @@ const main = async () => {
           break;
         }
 
-        const encoder = new Encoder(options);
+        const encoder = new Encoder(db, options);
         const encoderTask = new PausableTask(encoder);
         const encodeResult = await encoderTask.runTask(scanResult.success);
         logger.info(encodeResult.report());

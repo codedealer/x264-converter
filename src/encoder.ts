@@ -14,10 +14,11 @@ import { FFmpegExecutor } from "./ffmpeg";
 import { createWriteStream, renameSync, unlinkSync } from "node:fs";
 import { existsSync, statSync, utimesSync } from "fs";
 import { Pausable } from "./pausableTask";
-import { VideoFile } from "./db";
+import { updateVideoFile, VideoFile } from "./db";
 import PausableTaskResult from "./pausableTaskResult";
 import { StopWatch } from "stopwatch-node";
 import humanizeDuration from 'humanize-duration';
+import Database from "better-sqlite3";
 
 const statusIcons = {
   ['in-progress']: '⏳', // Hourglass
@@ -28,14 +29,12 @@ const statusIcons = {
 
 class Encoder implements Pausable<VideoFile> {
   public state: 'in-progress' | 'pause' | 'stop' | 'done';
-  public options: ValidatedOptions;
   public timer: StopWatch;
   private progressBar: cliProgress.SingleBar;
   private ffmpegExecutor: FFmpegExecutor | null = null;
 
-  constructor(options: ValidatedOptions) {
+  constructor(public db: Database.Database, public options: ValidatedOptions) {
     this.state = 'in-progress';
-    this.options = options;
     this.timer = new StopWatch();
     this.progressBar = this.makeProgressBar();
   }
@@ -96,6 +95,9 @@ class Encoder implements Pausable<VideoFile> {
       try {
         await this.processFile(queue[i], i);
         result.success.push(queue[i]);
+        // update the record in the database
+        queue[i].processed = true;
+        updateVideoFile(this.db, queue[i]);
       } catch (e) {
         result.failed.push({ item: queue[i].path, error: e as Error });
         if (this.options.careful) {
