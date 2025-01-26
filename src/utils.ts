@@ -1,4 +1,4 @@
-import { basename, dirname, extname, isAbsolute, resolve, sep } from 'path';
+import { basename, dirname, extname, isAbsolute, relative, resolve, sep } from 'path';
 import { existsSync, mkdirSync, statSync } from 'fs';
 import { ValidatedOptions } from "./options";
 
@@ -44,18 +44,20 @@ const ensureDirectoryExists = (filePath: string) => {
   }
 };
 
-// We assume that the output file will always be in the same directory regardless of the name
+// We assume that the output file will always be in the dst directory regardless of the name
 const getOutputFileName = (input: string, options: ValidatedOptions): {
   output: string;
   finalName: string;
 } => {
+  const relativePath = relative(options.srcDir, input);
   const filename = basename(input);
   const originalExtension = extname(filename).slice(1);
   const filenameWithoutExtension = filename.slice(0, -originalExtension.length - 1);
+  const subDir = dirname(relativePath);
 
   const result = {
     output: '',
-    finalName: resolve(options.dstDir, `${filenameWithoutExtension}.${options.videoOptions.outputContainer}`),
+    finalName: resolve(options.dstDir, subDir, `${filenameWithoutExtension}.${options.videoOptions.outputContainer}`),
   }
   if (options.srcDir === options.dstDir && options.videoOptions.outputContainer === originalExtension) {
     // If there is a name collision, we need to create a new file in the same directory with the temporary name and then rename it

@@ -169,7 +169,9 @@ class Encoder implements Pausable<VideoFile> {
     const output = getOutputFileName(file.path, this.options)
     args.push(output.output);
 
-    logger.debug(`Calling ffmpeg with arguments:`);
+    ensureDirectoryExists(output.finalName);
+
+    /*logger.debug(`Calling ffmpeg with arguments:`);
     for (let i = 0; i < args.length; i++) {
       if (i == args.length - 1) {
         logger.debug(`  ${args[i]}`);
@@ -177,7 +179,7 @@ class Encoder implements Pausable<VideoFile> {
       }
       let str = args[i + 1].startsWith('-') ? args[i] : `${args[i]} ${args[++i]}`;
       logger.debug(`  ${str}`);
-    }
+    }*/
 
     const errorLogFile = `${output.finalName}_error.log`;
 
