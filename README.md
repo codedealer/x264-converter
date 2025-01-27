@@ -20,30 +20,29 @@ cd <repository-directory>
 
 2. Install dependencies:  
 ```shell
-npm install
+pnpm install
 ```
 
 ## Running the Application
 
 1. Ensure FFmpeg is installed and available in your system PATH.
-2. Start the application:
+2. Start the application (ts-node):  
 ```shell
-npm start
+pnpm run dev
 ```
 
 ## Packaging the Application
 
 To package the application into an executable:  
-
-1. Install `pkg` globally if you haven't already:  
+ 
 ```shell
-npm install -g pkg
-```
-2. Package the application:  
-```shell
-pkg . --targets win
+pnpm run package
 ```
 This will create an executable file for Windows.
+
+## Cache and config
+
+The app creates a cache database using sqlite3 in the folder it runs from. It also takes a config or a folder with the config as a parameter. The config file should be a JSON file with the options described below. If no config is found a default will be created for you which you can then alter.
 
 ## Options
 
