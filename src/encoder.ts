@@ -22,10 +22,10 @@ import humanizeDuration from 'humanize-duration';
 import Database from "better-sqlite3";
 
 const statusIcons = {
-  ['in-progress']: '⏳', // Hourglass
-  pause: '⏸️', // Pause
-  stop: '🛑', // Stop
-  done: '✅', // Check mark
+  ['in-progress']: '⌛', // Hourglass
+  pause: 'Ⅱ', // Pause
+  stop: '■', // Stop
+  done: '✓', // Check mark
 };
 
 class Encoder implements Pausable<VideoFile> {
