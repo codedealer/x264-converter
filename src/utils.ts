@@ -1,5 +1,5 @@
 import { basename, dirname, extname, isAbsolute, relative, resolve, sep } from 'path';
-import { existsSync, mkdirSync, statSync } from 'fs';
+import { existsSync, mkdirSync, statSync, utimesSync } from 'fs';
 import { ValidatedOptions } from "./options";
 
 const validatePath = (inputPath: string, baseDirectory: string): string => {
@@ -86,11 +86,19 @@ const fixVideoStreamDimensions = (args: string[]) => {
   }
 }
 
+const preserveAttributes = (file: string, mtimes: { atime: number, mtime: number }) => {
+  if (mtimes.atime <= 0 || mtimes.mtime <= 0) {
+    return;
+  }
+  utimesSync(file, mtimes.atime, mtimes.mtime);
+}
+
 export {
   validatePath,
   trimFileName,
   stringToArgs,
   getOutputFileName,
   fixVideoStreamDimensions,
-  ensureDirectoryExists
+  ensureDirectoryExists,
+  preserveAttributes,
 };

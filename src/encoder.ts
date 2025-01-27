@@ -5,6 +5,7 @@ import {
   ensureDirectoryExists,
   fixVideoStreamDimensions,
   getOutputFileName,
+  preserveAttributes,
   stringToArgs,
   trimFileName
 } from "./utils";
@@ -12,7 +13,7 @@ import { displayPauseMenu } from "./menu";
 import { ValidatedOptions } from "./options";
 import { FFmpegExecutor } from "./ffmpeg";
 import { createWriteStream, renameSync, unlinkSync } from "node:fs";
-import { existsSync, statSync, utimesSync } from "fs";
+import { existsSync } from "fs";
 import { Pausable } from "./pausableTask";
 import { updateVideoFile, VideoFile } from "./db";
 import PausableTaskResult from "./pausableTaskResult";
@@ -196,23 +197,20 @@ class Encoder implements Pausable<VideoFile> {
       this.writeErrorLog(errorLogFile, stdErrData);
     }
 
-    this.finalizeFile(file.path, output.output, output.finalName);
+    this.finalizeFile(file, output.output, output.finalName);
     this.ffmpegExecutor = null;
 
     // finalize the progress bar just in case
     this.progressBar.update((fileIndex * 100) + 100);
   }
-  private finalizeFile (file: string, output:string, finalName: string) {
-    const stats = statSync(file);
-    const { birthtime, mtime } = stats;
-
+  private finalizeFile (file: VideoFile, output:string, finalName: string) {
     if (this.options.deleteOriginal) {
-      logger.debug(`Deleting original file: ${file}`);
-      unlinkSync(file);
+      logger.debug(`Deleting original file: ${file.path}`);
+      unlinkSync(file.path);
     }
     if (output === finalName) {
-      if (this.options.preserveAttributes) {
-        utimesSync(finalName, mtime, birthtime);
+      if (this.options.preserveAttributes && file.mtime) {
+        preserveAttributes(finalName, { atime: file.mtime, mtime: file.mtime });
       }
       return;
     }
@@ -222,8 +220,8 @@ class Encoder implements Pausable<VideoFile> {
     }
     logger.debug(`Renaming file: ${basename(output)} -> ${basename(finalName)}`);
     renameSync(output, finalName);
-    if (this.options.preserveAttributes) {
-      utimesSync(finalName, mtime, birthtime);
+    if (this.options.preserveAttributes && file.mtime) {
+      preserveAttributes(finalName, { atime: file.mtime, mtime: file.mtime });
     }
   }
   private writeErrorLog (file: string, data: string) {
