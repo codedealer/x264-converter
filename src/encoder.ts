@@ -236,7 +236,7 @@ class Encoder implements Pausable<VideoFile> {
   }
   private makeProgressBar () {
     const progressBar = new cliProgress.SingleBar({
-      format: '{filename} |{bar}| {percentage}% | {current}/{queue} | {status}',
+      format: '{filename} |{bar}| {percentage}% | {current}/{queue} | {status} | ETA: {eta_formatted}',
       hideCursor: true,
       clearOnComplete: false,
       fps: 10,

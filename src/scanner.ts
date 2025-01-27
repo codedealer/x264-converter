@@ -273,7 +273,7 @@ class Scanner implements Pausable<VideoFile> {
 
   private makeProgressBar(): cliProgress.SingleBar {
     return new cliProgress.SingleBar({
-      format: '{status} |{bar}| {percentage}% | {value}/{total} files',
+      format: '{status} |{bar}| {percentage}% | {value}/{total} files | ETA: {eta_formatted}',
       hideCursor: true,
       clearOnComplete: false,
       fps: 10,
