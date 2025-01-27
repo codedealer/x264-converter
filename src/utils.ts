@@ -62,7 +62,7 @@ const getOutputFileName = (input: string, options: ValidatedOptions): {
   if (options.srcDir === options.dstDir && options.videoOptions.outputContainer === originalExtension) {
     // If there is a name collision, we need to create a new file in the same directory with the temporary name and then rename it
     const suffix = '_encoded';
-    result.output = resolve(options.dstDir, `${filenameWithoutExtension}${suffix}.${options.videoOptions.outputContainer}`);
+    result.output = resolve(options.dstDir, subDir, `${filenameWithoutExtension}${suffix}.${options.videoOptions.outputContainer}`);
     if (!options.deleteOriginal) {
       // the original file will be kept, so our final name will be the same as the output
       result.finalName = result.output;
