@@ -90,7 +90,7 @@ const preserveAttributes = (file: string, mtimes: { atime: number, mtime: number
   if (mtimes.atime <= 0 || mtimes.mtime <= 0) {
     return;
   }
-  utimesSync(file, mtimes.atime, mtimes.mtime);
+  utimesSync(file, new Date(mtimes.atime), new Date(mtimes.mtime));
 }
 
 export {
