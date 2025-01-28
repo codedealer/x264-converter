@@ -165,7 +165,7 @@ class Scanner implements Pausable<VideoFile> {
       }
     }
 
-    if (!this.options.force && needsProbe) {
+    if (!this.options.skipProbe && needsProbe) {
       const mediaInfo = await this.probeFile(fileInfo);
       if (mediaInfo) {
         videoFile.media_info = mediaInfo;

@@ -9,13 +9,13 @@ import Scanner from "./scanner";
 import { Options } from "./options";
 
 const checkForceState = (options: Options) => {
-  if (options.force) {
-    logger.warn('Force mode enabled, ffprobing will be skipped.');
+  if (options.skipProbe) {
+    logger.info('ffprobing will be skipped.');
     if (options.filterBy?.codec) {
-      logger.warn('You have codec filter set in the config. Codec filtering will only be performed on the files cached from previous runs (if there were any). If this is unintentional, edit the config and reload.');
+      logger.warn('You have codec filter set in the config. Codec filtering relies of ffprobe and in this case will only be performed on the files cached from previous runs (if there were any). If this is unintentional, edit the config and reload.');
     }
   } else {
-    logger.info('Force mode disabled, ffprobing will be performed.');
+    logger.info('ffprobing will be performed.');
   }
 }
 
@@ -61,7 +61,6 @@ const main = async () => {
 
         break;
       case 'toggleForce':
-        options.force = !options.force;
         checkForceState(options);
         break;
       case 'drop':

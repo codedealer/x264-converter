@@ -51,7 +51,7 @@ The application supports the following options:
 - `srcDir`: The source directory to scan for video files.
 - `dstDir`: The destination directory to output processed files. If not specified, the source directory will be used.
 - `deep`: How deep to scan the source directory for video files. 0 for the source directory only.
-- `force`: Before processing the files, the app uses ffprobe to check the information about them. This option skips this step. Note that the data from ffprobe is cached, so if you are processing the same folder multiple times, the files that were probed before will retain that information anyway.
+- `skipProbe`: Before processing the files, the app uses ffprobe to check the information about them. This option skips this step. Note that the data from ffprobe is cached, so if you are processing the same folder multiple times, the files that were probed before will retain that information anyway.
 - `deleteOriginal`: Delete the original files after processing.
 - `preserveAttributes`: Preserve the modified date of the original file.
 - `videoOptions.outputContainer`: The output container format for the processed video files.

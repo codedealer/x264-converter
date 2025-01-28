@@ -23,7 +23,7 @@ export interface Options {
   // path to ffmpeg executable
   ffmpegPath?: string;
   // whether to skip checks and reencode every file
-  force: boolean;
+  skipProbe: boolean;
   videoOptions: {
     ffmpegCommand: string;
     outputContainer?: string
@@ -51,7 +51,7 @@ const defaultOptions: Options = {
   preserveAttributes: true,
   careful: false,
   deep: 0,
-  force: false,
+  skipProbe: false,
   videoOptions: {
     ffmpegCommand: '',
     outputContainer: 'mp4',
