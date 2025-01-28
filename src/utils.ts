@@ -7,7 +7,7 @@ const validatePath = (inputPath: string, baseDirectory: string): string => {
     inputPath = resolve(baseDirectory, inputPath);
   }
 
-  const resolvedBase = resolve(baseDirectory) + sep;
+  const resolvedBase = resolve(baseDirectory).endsWith(sep) ? resolve(baseDirectory) : resolve(baseDirectory) + sep;
   const resolvedPath = resolve(inputPath);
 
   if (!resolvedPath.startsWith(resolvedBase)) {
