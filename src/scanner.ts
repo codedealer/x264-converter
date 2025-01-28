@@ -173,17 +173,17 @@ class Scanner implements Pausable<VideoFile> {
       }
     }
 
+    if (needsCreate) {
+      insertVideoFile(this.db, videoFile);
+    } else if (needsUpdate) {
+      updateVideoFile(this.db, videoFile);
+    }
+
     if (
       videoFile.media_info &&
       this.options.filterBy?.codec &&
       !isMatch(videoFile.media_info.codec, this.options.filterBy.codec)) {
       return null;
-    }
-
-    if (needsCreate) {
-      insertVideoFile(this.db, videoFile);
-    } else if (needsUpdate) {
-      updateVideoFile(this.db, videoFile);
     }
 
     return videoFile;
