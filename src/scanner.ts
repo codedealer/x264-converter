@@ -3,7 +3,7 @@ import { ValidatedOptions } from './options';
 import { Pausable } from './pausableTask';
 import cliProgress from 'cli-progress';
 import logger from './logger';
-import { basename, dirname, join, sep } from "path";
+import { basename, dirname, extname, join, sep } from "path";
 import { displayPauseMenu } from "./menu";
 import { existsSync, statSync } from "fs";
 import FileInfo, { MediaInfo } from "./fileInfo";
@@ -132,7 +132,8 @@ class Scanner implements Pausable<VideoFile> {
     const fileInfo = this.readFileInfo(file);
 
     if (this.options.filterBy?.extension) {
-      if (!file.endsWith(this.options.filterBy.extension)) {
+      const extension = extname(fileInfo.fileName).slice(1);
+      if (!isMatch(extension, this.options.filterBy.extension)) {
         return null;
       }
     }
