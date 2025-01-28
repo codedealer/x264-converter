@@ -76,6 +76,9 @@ class Scanner implements Pausable<VideoFile> {
         } else if (process.stdin.isPaused()) {
           // this is just in case inquirer pauses stdin
           process.stdin.resume();
+          if (process.stdin.isTTY) {
+            process.stdin.setRawMode(true);
+          }
           logger.debug('Resuming stdin stream');
         }
 
