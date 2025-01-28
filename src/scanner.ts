@@ -17,10 +17,10 @@ import { StopWatch } from "stopwatch-node";
 import humanizeDuration from 'humanize-duration';
 
 const statusIcons = {
-  ['in-progress']: '⌛', // Hourglass
-  pause: 'Ⅱ', // Pause
-  stop: '■', // Stop
-  done: '✓', // Check mark
+  ['in-progress']: '>', // Hourglass
+  pause: 'II', // Pause
+  stop: '[]', // Stop
+  done: 'O', // Check mark
 };
 
 class Scanner implements Pausable<VideoFile> {
