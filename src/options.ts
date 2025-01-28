@@ -24,6 +24,8 @@ export interface Options {
   ffmpegPath?: string;
   // whether to skip checks and reencode every file
   skipProbe: boolean;
+  // whether to process files even if they were processed before
+  force?: boolean;
   videoOptions: {
     ffmpegCommand: string;
     outputContainer?: string

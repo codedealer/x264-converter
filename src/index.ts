@@ -9,13 +9,10 @@ import Scanner from "./scanner";
 import { Options } from "./options";
 
 const checkForceState = (options: Options) => {
-  if (options.skipProbe) {
-    logger.info('ffprobing will be skipped.');
-    if (options.filterBy?.codec) {
-      logger.warn('You have codec filter set in the config. Codec filtering relies of ffprobe and in this case will only be performed on the files cached from previous runs (if there were any). If this is unintentional, edit the config and reload.');
-    }
+  if (options.force) {
+    logger.warn('Force mode is enabled. Every eligible file will be processed regardless of its previous state.');
   } else {
-    logger.info('ffprobing will be performed.');
+    logger.info('Force mode is disabled. Only files that were not processed before will be processed.');
   }
 }
 
@@ -24,6 +21,19 @@ const main = async () => {
 
   logger.info(`Working directory${options.deep ? ' (and subdirectories)' : ''}: ${options.srcDir}`);
   logger.info(`Output directory: ${options.dstDir}`);
+
+  if (options.deleteOriginal) {
+    logger.info('Original files will be deleted after processing.');
+  }
+
+  if (options.skipProbe) {
+    logger.info('ffprobing will be skipped.');
+    if (options.filterBy?.codec) {
+      logger.warn('You have codec filter set in the config. Codec filtering relies of ffprobe and in this case will only be performed on the files cached from previous runs (if there were any). If this is unintentional, edit the config and reload.');
+    }
+  } else {
+    logger.info('ffprobing will be performed.');
+  }
 
   checkForceState(options);
 
@@ -61,6 +71,7 @@ const main = async () => {
 
         break;
       case 'toggleForce':
+        options.force = !options.force;
         checkForceState(options);
         break;
       case 'drop':

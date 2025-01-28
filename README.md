@@ -52,6 +52,7 @@ The application supports the following options:
 - `dstDir`: The destination directory to output processed files. If not specified, the source directory will be used.
 - `deep`: How deep to scan the source directory for video files. 0 for the source directory only.
 - `skipProbe`: Before processing the files, the app uses ffprobe to check the information about them. This option skips this step. Note that the data from ffprobe is cached, so if you are processing the same folder multiple times, the files that were probed before will retain that information anyway.
+- `force`: Process the eligible files even if they were processed before.
 - `deleteOriginal`: Delete the original files after processing.
 - `preserveAttributes`: Preserve the modified date of the original file.
 - `videoOptions.outputContainer`: The output container format for the processed video files.
@@ -66,6 +67,7 @@ The application supports the following options:
   "srcDir": "C:\\path\\to\\source",
   "dstDir": "C:\\path\\to\\destination",
   "deep": true,
+  "skipProbe": false,
   "force": false,
   "deleteOriginal": false,
   "preserveAttributes": true,
@@ -73,6 +75,10 @@ The application supports the following options:
     "outputContainer": "mp4",
     "ffmpegCommand": "-c:v libx264 -crf 23 -preset medium"
   },
-  "ffmpegPath": "C:\\path\\to\\ffmpeg.exe"
+  "ffmpegPath": "C:\\path\\to\\ffmpeg.exe",
+  "filterBy": {
+    "extension": "mp4",
+    "codec": "!hevc"
+  }
 }
 ```

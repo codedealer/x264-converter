@@ -143,7 +143,7 @@ class Scanner implements Pausable<VideoFile> {
     let needsCreate = false;
     let needsUpdate = false;
     if (videoFile) {
-      if (videoFile.processed) {
+      if (!this.options.force && videoFile.processed) {
         return null;
       } else if (!videoFile.media_info) {
         needsProbe = true;

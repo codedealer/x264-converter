@@ -15,6 +15,7 @@ const optionsSchema: JSONSchemaType<Options> = {
     deep: { type: 'number' },
     ffmpegPath: { type: 'string', nullable: true },
     skipProbe: { type: 'boolean' },
+    force: { type: 'boolean', nullable: true },
     videoOptions: {
       type: 'object',
       properties: {
