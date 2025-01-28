@@ -5,9 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "clean": "rimraf bin && mkdir bin",
+    "copy-sqlite-binding": "cpx node_modules/better-sqlite3/build/Release/better_sqlite3.node bin/",
     "dev": "ts-node src/index.ts",
     "build": "tsc",
-    "package": "pnpm run clean && pnpm run build && pkg . --out-path bin"
+    "package": "pnpm run clean && pnpm run build && pnpm run copy-sqlite-binding && pkg . --out-path bin"
   },
   "bin": {
     "x264-converter": "dist/index.js"
@@ -40,6 +41,7 @@
     "@types/humanize-duration": "^3.27.4",
     "@types/node": "^22.10.5",
     "@yao-pkg/pkg": "^6.2.0",
+    "cpx2": "^8.0.0",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
